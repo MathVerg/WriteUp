@@ -41,26 +41,26 @@ We can then read the log with any file viewer, and see that we have :
 3. 31 times (8 `uc_reg_write` + many (`uc_mem_write` + `uc_emu_start`) + 8 `uc_reg_read`)
 4. eight `uc_close`
 
-Now that's we have the general structure of the lib calls, let's go deeper and see what they mean. We'll be using the [Unicorn Engine tutorial](https://www.unicorn-engine.org/docs/tutorial.html), and the source file `uc.c`.
-- `uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **result)` creates a new processor emulator, with architecture `arch` in mode `mode`, and write the newly created emulator to `result`. In our case, this function is called with the parameters `arch=2` (`ARM64`) and `mode=0`(`MODE_ARM`, to be compared with `MODE_THUMB`) for instance. Shame, I don't speak `ARM`, I only know `x86` (and a bit of `Z80`, thanks to the teasing challenge).
-- `uc_err uc_mem_map(uc_engine *uc, uint64_t address, size_t size, uint32_t perms)` allocates some memory for the emulator. Our eifght calls are in the form `uc_mem_map(<addr>, 0, 1024, 7)`, so we allocate `1MB` of memory at address `0`, with all the permissions (`7=UC_PROT_ALL`).
-- `uc_err uc_reg_write(uc_engine *uc, int regid, const void *value)` and `uc_err uc_reg_read(uc_engine *uc, int regid, void *value)` allow to write and read the emulator's register. In our case they are always called with `regid = 199`, which is ARM's register `X0` according to `unicorn/bindings/dotnet/UnicornManaged/Const/Arm64.fs`
+Now that's we have the general structure of the lib calls, let's go deeper and see what they mean. We'll be using the [Unicorn Engine tutorial](https://www.unicorn-engine.org/docs/tutorial.html), and the source file [uc.c](https://github.com/unicorn-engine/unicorn/blob/master/uc.c).
+- `uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **result)` creates a new processor emulator, with architecture `arch` in mode `mode`, and write the newly created emulator to `result`. In our case, this function is called with the parameters `arch=2` (`ARM64`) and `mode=0` (`MODE_ARM`, to be compared with `MODE_THUMB` for instance). Shame, I don't speak `ARM`, I only know `x86` (and a bit of `Z80`, thanks to the teasing challenge).
+- `uc_err uc_mem_map(uc_engine *uc, uint64_t address, size_t size, uint32_t perms)` allocates some memory for the emulator. Our eight calls are in the form `uc_mem_map(<emu>, 0, 1024, 7)`, so we allocate `1MB` of memory at address `0`, with all the permissions (`7=UC_PROT_ALL`).
+- `uc_err uc_reg_write(uc_engine *uc, int regid, const void *value)` and `uc_err uc_reg_read(uc_engine *uc, int regid, void *value)` allow to write and read the emulator's register. In our case they are always called with `regid = 199`, which is ARM's register `X0` according to [this file](https://github.com/unicorn-engine/unicorn/blob/master/bindings/dotnet/UnicornManaged/Const/Arm64.fs)
 - `uc_err uc_mem_write(uc_engine *uc, uint64_t address, const void *_bytes, size_t size)` writes to the emulator's memory, in our case it always write `size = 4` bytes at address `0`, and take them from the same address on the stack : `bytes = 0x7ffc15501e6c`
 - `uc_err uc_emu_start(uc_engine *uc, uint64_t begin, uint64_t until, uint64_t timeout, size_t count)` starts the emulator, in our case it is called with `begin=0`, `until=4`, `timeout=0`, no count. So basically, we just run the emulator on the `4` bytes we wrote juste before. Note that in ARM, every instruction is `4` bytes long, so it seems that we write and run the code instruction per instruction.
 - `uc_err uc_close(uc_engine *uc)` finally closes the emulator
 
-We also notice that the 8 processors are always called in the same order, but the values written to X0 are permuted after each read.
+We also notice that the 8 processors are always called in the same order, but the values written to `X0` are permuted after each read.
 
-We now have a pretty good idea of what is going on in this program, and yet we haven't looked at any piece of assembly code ! It seems that the program takes our 8 numbers, and does some obsure processing on them using 8 ARM emulated codes. But we don't know how the result is verified, so we'll have to our hands dirty in order to find it.
+We now have a pretty good idea of what is going on in this program, and yet we haven't looked at any piece of assembly code ! It seems that the program takes our 8 numbers, and does some obsure processing on them using 8 ARM emulated codes. But we don't know how the result is verified, so we'll have to get our hands dirty in order to find it.
 
 ## Cutter and GDB
 
-We'll first use `Cutter` (a front-end for `radare2`, the version on my computer dates back to befor the fork with `iaito`) to statically disassemble the program. We notice two interesting functions :
+We'll first use `Cutter` (a front-end for `radare2`, the version on my computer dates back to before the fork with `iaito`) to statically disassemble the program. We notice two interesting functions :
 - one address `0x000010f0`, that seems to be the `main`function. It contains a loop ran 8 times where `uc_open` and `uc_mem_map` are called. Then another loop ran 8 times where `scanf` is called, and we can see that just before the call, `rdi` is set, through `r13`, to the address of the string "%lu", which confirms that the expected inputs are integers (long and unsigned, to be more precise). Then a great loop ran `31` times and containing 3 smaller loop, each ran 8 times, for `uc_reg_write`, a function at address `0x00001410` and `uc_reg_read`. And finally, at address `0x000012b2`, a check on `rbp` that leads to victory if `rbp` is null : we found it !
 
 ![victory instruction](VictoryInstruction.png)
 
-- the function at address `0x00001410` is the one doing all the `uc_mem_write` and `uc_start`. But there are sme weird operations, including XORs before the call to `uc_mem_write` : the ARM payload is probably obfuscated in the binary
+- the function at address `0x00001410` is the one doing all the `uc_mem_write` and `uc_start`. But there are some weird operations, including XORs before the call to `uc_mem_write` : the ARM payload is probably obfuscated in the binary
 
 ![ARM execution](ArmExecution.png)
 
@@ -118,7 +118,10 @@ The worklow to use BINSEC is mostly documented through [examples](https://github
 - it can only consider one file (and here we want to got through the `licorne` binary, but also the different libs it uses)
 - it starts by default with no concrete variable (especially, if not told anything else, the stack pointer will be symbolic, and can then point anyway in the memory)
 
-These two problems can be solved by running BINSEC on a core dump rather than on the program itself. The core dump can be obtained through GDB. I wrote the necessary commands in [this GDB script](gdb-script). You will identify process we used in the previous part to find the `main`, and also the setting of two environment variables : `LD_BIND_NOW=1` tells the linker to bind the library before the execution, rather than the default behaviour of loading them only when they are called, and `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable` allows to disable the [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2) instruction set, which is not supported by BINSEC.
+These two problems can be solved by running BINSEC on a core dump rather than on the program itself. The core dump can be obtained through GDB. I wrote the necessary commands in [this GDB script](gdb-script). You will identify the method we used in the previous part to find the `main`, and also the setting of two environment variables : `LD_BIND_NOW=1` tells the linker to bind the library before the execution, rather than the default behaviour of loading them only when they are called, and `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable` allows to disable the [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2) instruction set, which is not supported by BINSEC. The script is run by
+```shell
+$ gdb -x gdb-script licorne
+```
 
 Now that we have our core dump, we can write a BINSEC script that will use it. Let's first set the directives :
 ```
@@ -130,7 +133,7 @@ final_test_addr<64> := 0x5555555552b2
 reach final_test_addr such that rbp = 0 then print model
 cut at final_test_addr
 ```
-The `print model` instruction tells BINSEC to print the values it gave to the symbolic variables in order to find the solution. Then, sinc our input comes from `scanf`, we will have to stub this function in order to make the input symbolic. We'll start with a basic "do nothing" function skeleton :
+The `print model` instruction tells BINSEC to print the values it gave to the symbolic variables in order to find the solution. Then, since our input comes from `scanf`, we will have to stub this function in order to make the input symbolic. We'll start with a basic "do nothing" function skeleton :
 ```
 replace <__isoc99_scanf> by
     caller<64> := @[rsp, 8]
@@ -201,7 +204,7 @@ void executeARM(long n)
   exit(0);
 }
 ```
-We have two blocs of data, on starting at `001040c0` and another at `001042c0`. By comparing their content with the address that `xxd` gives us in the actual program, we see that in the `licorne` file these addresses correspond to `0x30c0` and `0x32c0`, and that the `.data` bloc ends just before `0x50c0`. We can then extract these two data blocs using `dd`:
+We have two blocs of data, one starting at `001040c0` and another at `001042c0`. By comparing their content with the address that `xxd` gives us in the actual program, we see that in the `licorne` file these addresses correspond to `0x30c0` and `0x32c0`, and that the `.data` bloc ends just before `0x50c0`. We can then extract these two data blocs using `dd`:
 ```shell
 $ dd if=licorne of=bloc1.bin bs=1 skip=$((0x30c0)) count=$((0x50c0 - 0x30c0))
 $ dd if=licorne of=bloc2.bin bs=1 skip=$((0x32c0)) count=$((0x50c0 - 0x32c0))
@@ -210,7 +213,7 @@ It is then interesting to notice that the actual decoding of the arm code depens
 ```shell
 $ aarch64-linux-gnu-objcopy --input-target=binary --output-target=elf64-littleaarch64 --add-section .text=arm0.bin arm0.bin arm0.elf
 ```
-We now have 8 elf files corresponding to the codes ran by our 8 emulated processors. If we disassemble them with BINSEC (note : you will need to have `unisim_archisec` installed in order to be able to decode aarch640), we see that they all look alike : a big bunch of multiplications, rotations and xoring
+We now have 8 elf files corresponding to the codes ran by our 8 emulated processors. If we disassemble them with BINSEC (note : you will need to have `unisim_archisec` installed in order to be able to decode aarch64), we see that they all look alike : a big bunch of multiplications, rotations and xoring
 ```shell
 $ binsec -disasm arm7.elf
 [disasm:info] Running disassembly
@@ -230,7 +233,7 @@ $ binsec -disasm arm7.elf
                 0x00000024 d2 9e f0 82                            mov   x2, #0xf784
 [..]
 ```
-We really don't want to go through this mess, so we'll be using binsec to see how the output can be expressed as a function of the input. We do a very simple [script](binsec-arm.ini) that tells BINSEC to go until the end of the program an prints the formula it found for `X0`. Here we can't use the alternative engine, because it does not yet implement the functionality to print the formula :
+We really don't want to go through this mess, so we'll be using binsec to see how the output can be expressed as a function of the input. We do a very simple [script](binsec-arm.ini) that tells BINSEC to go until the end of the program an prints the formula it found for `X0`. Here we can not use the alternative engine, because it does not yet implement the functionality to print the formula :
 ```shell
 $ binsec -sse -sse-script binsec-arm.ini arm7.elf                                                  
 [sse:result] Directive :: path 0 reached address 0x00000200 (0 to go)
@@ -251,8 +254,10 @@ First of all, we have to decide where we will place the addresses of our stubbed
 processor<64> := 0x561ddc6532a0
 x0_val<64> := 0x561ddca0bf80
 ```
-`uc_open` writes to where it's `result` arguments (givn by `rdx`) points to. We want to write a different address for our 8 processors, so let's add a global variable to count them.
+`uc_open` writes to where its `result` arguments (given by `rdx`) points to. We want to write a different address for our 8 processors, so let's add a global variable to count them.
 ```
+proc_count<64> := 0
+
 replace <uc_open> by
     caller<64> := @[rsp, 8]
     resultp<64> := rdx
@@ -331,11 +336,11 @@ replace play_arm_code by
     rax := 0
     jump at caller
 ```
-And finally, the functions `uc_mem_write` and `uc_emu_start` should never be called, since we stubbed the function calling them. Just to make sure we made no mistake, we'll add a failure directive on them:
+And finally, the functions `uc_mem_write` and `uc_emu_start` should never be called, since we stubbed the function calling them. Just to make sure we made no mistake, we add a failure directive on them:
 ```
 abort at <uc_mem_write>, <uc_emu_start>
 ```
-Our (script)[binsec-licorne.ini] is now ready, so let's run it. Obviously, it did not work the first time, I had to debug some type errors, etc. The results comes out really fast :
+Our [script](binsec-licorne.ini) is now ready, so let's run it. Obviously, it did not work the first time, I had to debug some type errors, etc. The results comes out really fast :
 ```shell
 $ binsec -sse -sse-script binsec-licorne.ini -sse-alternative-engine -sse-depth 1000000 core.snapshot
 [sse:result] Directive :: path 0 reached address 0x5555555552b2 (0 to go)
@@ -364,3 +369,4 @@ $ ./licorne
 1845426182176457746
 Congrats! You can use the flag FCSC{bddb83056668ad24731c28bd35161a7d90923d7a887e728f4866bbe4d32b5947e64b8dab82b547839a0777668fac199e199fe9291df0f5ac199c4555cfd54412} to validate the challenge.
 ```
+And that's a victory !
