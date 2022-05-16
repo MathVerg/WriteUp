@@ -114,6 +114,8 @@ Several tools allow you to do this. You've probaly already heard about [angr](ht
 
 ![binsec vs angr](BinsecVsAngr.png)
 
+NB : being myself a BINSEC developer, I *might* be *slighly* biased.
+
 The worklow to use BINSEC is mostly documented through [examples](https://github.com/binsec/binsec/tree/master/examples/sse). The idea is to make a script with some directives of what you want (reach some point of the program, do not go to some other part, etc.), and then BINSEC will try to find the values that allows you to get there. In the script, you will also be able to write some **stubs** for functions in a language called [DBA](https://github.com/binsec/binsec/blob/master/doc/sse/references.md), which allows you to run only the part of a function that is interesting for you, or to have the function create symbolic variables. But there are two problems :
 - it can only consider one file (and here we want to got through the `licorne` binary, but also the different libs it uses)
 - it starts by default with no concrete variable (especially, if not told anything else, the stack pointer will be symbolic, and can then point anyway in the memory)
