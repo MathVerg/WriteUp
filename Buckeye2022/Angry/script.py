@@ -1,0 +1,12 @@
+
+cipher = b'\x89\xea\x8d\x6d\xac\x97\xb2\xed\x6e\x1d\x24\xc6\x1b\xfa\x89\x66\x1d\x8e\xcc\x27\xaf\x3a\xa1\x68\x6e\xd7\xb9\xe8\x72\x99\xe4\x97\xbe'
+key = 0x2a
+
+plain = []
+for b in cipher:
+    newkey = b
+    c = (b >> (key % 8)) | ((b << 8 - (key % 8)) & 0xff)
+    plain.append(c)
+    key = newkey
+flag = bytes(plain)
+print(flag)
