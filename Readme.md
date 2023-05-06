@@ -1,3 +1,3 @@
 # Write-ups
 
-You'll find here my write-up for wome CTF in which I participated.
+You'll find here my write-ups for some CTF in which I participated.

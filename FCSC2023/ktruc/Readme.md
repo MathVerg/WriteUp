@@ -38,7 +38,7 @@ Some of them are of minor importance: the [Dockerfile](./ktruc-public/Dockerfile
 
 The challenge uses [QEMU](https://www.qemu.org/) for system emulation. The standard "SMEP" and "SMAP" protections are enabled, which means that we won't be able to jump to userland code, nor to use userland data directly. There is also a 300s (5min) timeout, after which the emulator is killed. The flag is loaded as a virtual drive, and we will need to be root in order to read it.
 
-In my debug setup, I modified this file to ease debugging. I remove the timeout, added the `-s` flag to allow remote debugging via GDB on port 1234, and disabled KASLR in order to be able to keep my breakpoints between debugging sessions. You can see the result [here](./debug-setup/run.sh). Of course, in my debug setup, I am running the `run.sh` file directly, without going through the PoW.
+In my debug setup, I modified this file to ease debugging. I removed the timeout, added the `-s` flag to allow remote debugging via GDB on port 1234, and disabled KASLR in order to be able to keep my breakpoints between debugging sessions. You can see the result [here](./debug-setup/run.sh). Of course, in my debug setup, I am running the `run.sh` file directly, without going through the PoW.
 
 ### kinetic-server-cloudimg-amd64-vmlinuz-generic
 
@@ -187,7 +187,7 @@ ffffb551406a7ee8
 ## Privilege elevation: unsuccessful ideas
 
 I spent a long time trying to see what I could do with my primitives. In the write-ups, I found two classical way to get root in LKM exploitation:
-- call `commit_creds(prepare_creds(0))`, then switch back to userland with `swapgs + iretq` or through a KPTI trampoline. This would require hijacking the execution flow, and since `SMEP` is enabled and the Kernel as a NX policy, the best way to do it is through ROPing. But `__check_object_size` will prevent us from overwriting the stack.
+- call `commit_creds(prepare_kernel_creds(0))`, then switch back to userland with `swapgs + iretq` or through a KPTI trampoline. This would require hijacking the execution flow, and since `SMEP` is enabled and the Kernel as a NX policy, the best way to do it is through ROPing. But `__check_object_size` will prevent us from overwriting the stack.
 - change the `cred` of the current `task_struct`. For this we need to locate the `task_struct` on the heap, but when I tried to browse the heap, I was stopped every time by `__check_object_size`. I tried to script it in a C2 way, with a python script that would restart the `pwn` program when it crashes, but it was too slow and not reliable.
 
 I was completely blocked by `__check_object_size`. I subsequently tried to get true AAR/AAW primitives, by exploiting a TTY struct (because I saw it a lot in write-ups), but once again, I could not reliably find my `tty_struct` in the memory because of `__check_object_size`. My unsuccessful attempts at elevating my privileges can still be found in `create_tty`, `place_needle_in_taskstruct`, `find_banks` and `register_sigsev`.
