@@ -24,25 +24,39 @@ The hash of the shared secret is then XORed with the flag.
 
 ## Circulant matrices
 
-Let's read a bit about circulant matrices on [Wikipedia](https://en.wikipedia.org/wiki/Circulant_matrix). They seem to have very interesting property, notably they are closely related to the [Discrete Fourier Transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform#The_unitary_DFT), they can all be expressed as a polynomial of a given cyclic permutation matrix, and are thus all diagonalizable in the same basis. The basis change can be operated using the matrix $ U={\frac {1}{\sqrt {n}}}{\begin{pmatrix}1&1&\dots &1\\1&\omega &\dots &\omega ^{n-1}\\\vdots &\vdots &&\vdots \\1&\omega ^{n-1}&\dots &\omega ^{(n-1)^{2}}\end{pmatrix}}$ where $\omega =e^{\frac {2i\pi }{n}}$ is the primitive $n$-th root of unity. Note that $U$ is [unitary](https://en.wikipedia.org/wiki/Unitary_matrix), which means that its inverse is its conjugate transpose: $U^{-1} = U^*$.
+Let's read a bit about circulant matrices on [Wikipedia](https://en.wikipedia.org/wiki/Circulant_matrix). They seem to have very interesting property, notably they are closely related to the [Discrete Fourier Transform](https://en.wikipedia.org/wiki/Discrete_Fourier_transform#The_unitary_DFT), they can all be expressed as a polynomial of a given cyclic permutation matrix, and are thus all diagonalizable in the same basis. The basis change can be operated using the matrix
+```math
+U={\frac {1}{\sqrt {n}}}{\begin{pmatrix}1&1&\dots &1\\1&\omega &\dots &\omega ^{n-1}\\\vdots &\vdots &&\vdots \\1&\omega ^{n-1}&\dots &\omega ^{(n-1)^{2}}\end{pmatrix}}
+```
+where $\omega =e^{\frac {2i\pi }{n}}$ is the primitive $n$-th root of unity. Note that $U$ is [unitary](https://en.wikipedia.org/wiki/Unitary_matrix), which means that its inverse is its conjugate transpose: $U^{-1} = U^*$.
 
 ## Diagonalizing
 
 Now that we know that `U1` and `U2` are diagonalizable in the same basis, we can operate the basis change. We have
-$$M_k = U_k^{\textsf{T}} Q U_k = (UD_kU^*)^{\textsf{T}} Q UD_kU^* = \overline{U}D_kU^{\textsf{T}}QUD_kU^*$$
+```math
+M_k = U_k^{\textsf{T}} Q U_k = (UD_kU^\ast)^{\textsf{T}} Q UD_kU^\ast = \overline{U}D_kU^{\textsf{T}}QUD_kU^\ast
+```
+
 Where $D_k$ is diagonal. Let $R = U^{\textsf{T}}QU$, we then have
-$$A_k = U^{\textsf{T}}M_kU = D_k R D_k$$
+
+```math
+A_k = U^{\textsf{T}}M_kU = D_k R D_k
+```
 
 and this is very interesting, because we know $R$, and since $D_k$ is diagonal, we have
-$$(A_k)_{i, j} = (D_k)_{i,i} (R)_{i,j}(D_k)_{j, j}$$
+```math
+(A_k)_{i, j} = (D_k)_{i,i} (R)_{i,j}(D_k)_{j, j}
+```
 
 We can then easily compute $T = D_1D_2RD_2D_1$ by 
 
-$$(T)_{i, j} = (D_1)_{i,i}(D_2)_{i,i} (R)_{i,j}(D_2)_{j, j}(D_1)_{j, j} = ((A_1)_{i, j} (A_2)_{i, j})/(R)_{i,j} $$
+```math
+(T)_{i, j} = (D_1)_{i,i}(D_2)_{i,i} (R)_{i,j}(D_2)_{j, j}(D_1)_{j, j} = ((A_1)_{i, j} (A_2)_{i, j})/(R)_{i,j}
+```
 
 And then we have
 
-$$\overline{U}TU^* = \overline{U}D_1U^{\textsf{T}}\overline{U}D_2U^{\textsf{T}}QUD_2U^*UD_1U^* = U_1^{\textsf{T}} U_2^{\textsf{T}} Q U_2 U_1 = S_1$$
+$$\overline{U}TU^* = \overline{U}D_1U^{\textsf{T}}\overline{U}D_2U^{\textsf{T}}QUD_2U^{\ast}UD_1U^\ast = U_1^{\textsf{T}} U_2^{\textsf{T}} Q U_2 U_1 = S_1$$
 
 And since $D_1$ and $D_2$ are diagonal, they commute, and we also have $T = S_2$, which proved that we indeed have a common shared secret. Now, we managed to find a way to recover this shared secret from the public parameters
 
