@@ -1,6 +1,6 @@
-# FCSC 2022 : Licorne
+# FCSC 2022: Licorne
 
-In this paper I explain how I solved FCSC 2022 challenge "Licorne". It is a reverse engineering challenge : you are given a binary program called "licorne" (french for "unicorn"), and you have to find the input that will trigger a winning message. The method I used relies mostly on [Symbolic Execution](https://en.wikipedia.org/wiki/Symbolic_execution), using a tool called [BINSEC](https://binsec.github.io).
+In this paper I explain how I solved FCSC 2022 challenge "Licorne". It is a reverse engineering challenge: you are given a binary program called "licorne" (french for "unicorn"), and you have to find the input that will trigger a winning message. The method I used relies mostly on [Symbolic Execution](https://en.wikipedia.org/wiki/Symbolic_execution), using a tool called [BINSEC](https://binsec.github.io).
 
 ## Tools used
 
@@ -8,7 +8,7 @@ In this paper I explain how I solved FCSC 2022 challenge "Licorne". It is a reve
 - `radare2` + `Cutter`
 - `gdb`
 - `ltrace`
-- `BINSEC` + `unisim_archisec` (install them with Ocaml Package Manager : `opam install binsec unisim_archisec`)
+- `BINSEC` + `unisim_archisec` (install them with Ocaml Package Manager: `opam install binsec unisim_archisec`)
 - `Ghidra`
 - `python`, of course
 
@@ -25,7 +25,7 @@ We can search for ascii strings inside the binary
 ```shell
 $ strings licorne
 ```
-We find the usual winning string in two parts : "Congrats! You can use the flag FCSC{" and "} to validate the challenge.". And there are some unusual names, starting with `uc_`, like `uc_reg_write` or `uc_emu_start`, along with the name of a library that will certainly be highly interesting : `libunicorn.so.2`. A quick Web search leads us to the [Unicorn Engine](https://www.unicorn-engine.org/), a CPU emulator. On their website, I found a [short tutorial](https://www.unicorn-engine.org/docs/tutorial.html) that teaches you everything you have to know in order to use the lib.
+We find the usual winning string in two parts: "Congrats! You can use the flag FCSC{" and "} to validate the challenge.". And there are some unusual names, starting with `uc_`, like `uc_reg_write` or `uc_emu_start`, along with the name of a library that will certainly be highly interesting: `libunicorn.so.2`. A quick Web search leads us to the [Unicorn Engine](https://www.unicorn-engine.org/), a CPU emulator. On their website, I found a [short tutorial](https://www.unicorn-engine.org/docs/tutorial.html) that teaches you everything you have to know in order to use the lib.
 
 Okay, and now we'll study the behavior of the program  ~~in a secure environment, like a virtual machine~~ directly on our computer because we trust the people at ANSSI for not giving us a malware without warnings. At first our *licorne* complains about not finding its (her ? his ?) mother (aka the `libunicorn`), so we [download, build and install](https://github.com/unicorn-engine/unicorn/blob/master/docs/COMPILE.md) the lib and run the program again. We try letters and numbers, but the program does not give any feedback. We only notice that it seems to want 8 numbers (it stops prematurely if it is given something else).
 
@@ -45,7 +45,7 @@ Now that's we have the general structure of the lib calls, let's go deeper and s
 - `uc_err uc_open(uc_arch arch, uc_mode mode, uc_engine **result)` creates a new processor emulator, with architecture `arch` in mode `mode`, and write the newly created emulator to `result`. In our case, this function is called with the parameters `arch=2` (`ARM64`) and `mode=0` (`MODE_ARM`, to be compared with `MODE_THUMB` for instance). Shame, I don't speak `ARM`, I only know `x86` (and a bit of `Z80`, thanks to the teasing challenge).
 - `uc_err uc_mem_map(uc_engine *uc, uint64_t address, size_t size, uint32_t perms)` allocates some memory for the emulator. Our eight calls are in the form `uc_mem_map(<emu>, 0, 1024, 7)`, so we allocate `1MB` of memory at address `0`, with all the permissions (`7=UC_PROT_ALL`).
 - `uc_err uc_reg_write(uc_engine *uc, int regid, const void *value)` and `uc_err uc_reg_read(uc_engine *uc, int regid, void *value)` allow to write and read the emulator's register. In our case they are always called with `regid = 199`, which is ARM's register `X0` according to [this file](https://github.com/unicorn-engine/unicorn/blob/master/bindings/dotnet/UnicornManaged/Const/Arm64.fs)
-- `uc_err uc_mem_write(uc_engine *uc, uint64_t address, const void *_bytes, size_t size)` writes to the emulator's memory, in our case it always write `size = 4` bytes at address `0`, and take them from the same address on the stack : `bytes = 0x7ffc15501e6c`
+- `uc_err uc_mem_write(uc_engine *uc, uint64_t address, const void *_bytes, size_t size)` writes to the emulator's memory, in our case it always write `size = 4` bytes at address `0`, and take them from the same address on the stack: `bytes = 0x7ffc15501e6c`
 - `uc_err uc_emu_start(uc_engine *uc, uint64_t begin, uint64_t until, uint64_t timeout, size_t count)` starts the emulator, in our case it is called with `begin=0`, `until=4`, `timeout=0`, no count. So basically, we just run the emulator on the `4` bytes we wrote juste before. Note that in ARM, every instruction is `4` bytes long, so it seems that we write and run the code instruction per instruction.
 - `uc_err uc_close(uc_engine *uc)` finally closes the emulator
 
@@ -56,11 +56,11 @@ We now have a pretty good idea of what is going on in this program, and yet we h
 ## Cutter and GDB
 
 We'll first use `Cutter` (a front-end for `radare2`, the version on my computer dates back to before the fork with `iaito`) to statically disassemble the program. We notice two interesting functions :
-- one address `0x000010f0`, that seems to be the `main`function. It contains a loop ran 8 times where `uc_open` and `uc_mem_map` are called. Then another loop ran 8 times where `scanf` is called, and we can see that just before the call, `rdi` is set, through `r13`, to the address of the string "%lu", which confirms that the expected inputs are integers (long and unsigned, to be more precise). Then a great loop ran `31` times and containing 3 smaller loop, each ran 8 times, for `uc_reg_write`, a function at address `0x00001410` and `uc_reg_read`. And finally, at address `0x000012b2`, a check on `rbp` that leads to victory if `rbp` is null : we found it !
+- one address `0x000010f0`, that seems to be the `main`function. It contains a loop ran 8 times where `uc_open` and `uc_mem_map` are called. Then another loop ran 8 times where `scanf` is called, and we can see that just before the call, `rdi` is set, through `r13`, to the address of the string "%lu", which confirms that the expected inputs are integers (long and unsigned, to be more precise). Then a great loop ran `31` times and containing 3 smaller loop, each ran 8 times, for `uc_reg_write`, a function at address `0x00001410` and `uc_reg_read`. And finally, at address `0x000012b2`, a check on `rbp` that leads to victory if `rbp` is null: we found it !
 
 ![victory instruction](VictoryInstruction.png)
 
-- the function at address `0x00001410` is the one doing all the `uc_mem_write` and `uc_start`. But there are some weird operations, including XORs before the call to `uc_mem_write` : the ARM payload is probably obfuscated in the binary
+- the function at address `0x00001410` is the one doing all the `uc_mem_write` and `uc_start`. But there are some weird operations, including XORs before the call to `uc_mem_write`: the ARM payload is probably obfuscated in the binary
 
 ![ARM execution](ArmExecution.png)
 
@@ -102,7 +102,7 @@ Continuing.
 Congrats! You can use the flag FCSC{00000000000000010000000000000002000000000000000300000000000000040000000000000005000000000000000600000000000000070000000000000008} to validate the challenge.
 [Inferior 1 (process 24854) exited normally]
 ```
-Ok, it works, but it's useless : the flag that we are given is just the concatenation of the inputs we fed the unicorn with. Still, it confirms that our goal is to get `rbp = 0` at this point of the program.
+Ok, it works, but it's useless: the flag that we are given is just the concatenation of the inputs we fed the unicorn with. Still, it confirms that our goal is to get `rbp = 0` at this point of the program.
 
 But I am lazy, and I don't want spend time understanding what our *licorne* does with it's food. Enters BINSEC.
 
@@ -114,13 +114,13 @@ Several tools allow you to do this. You've probaly already heard about [angr](ht
 
 ![binsec vs angr](BinsecVsAngr.png)
 
-NB : being myself a BINSEC developer, I *might* be *slighly* biased.
+NB: being myself a BINSEC developer, I *might* be *slighly* biased.
 
 The worklow to use BINSEC is mostly documented through [examples](https://github.com/binsec/binsec/tree/master/examples/sse). The idea is to make a script with some directives of what you want (reach some point of the program, do not go to some other part, etc.), and then BINSEC will try to find the values that allows you to get there. In the script, you will also be able to write some **stubs** for functions in a language called [DBA](https://github.com/binsec/binsec/blob/master/doc/sse/references.md), which allows you to run only the part of a function that is interesting for you, or to have the function create symbolic variables. But there are two problems :
 - it can only consider one file (and here we want to got through the `licorne` binary, but also the different libs it uses)
 - it starts by default with no concrete variable (especially, if not told anything else, the stack pointer will be symbolic, and can then point anyway in the memory)
 
-These two problems can be solved by running BINSEC on a core dump rather than on the program itself. The core dump can be obtained through GDB. I wrote the necessary commands in [this GDB script](gdb-script). You will identify the method we used in the previous part to find the `main`, and also the setting of two environment variables : `LD_BIND_NOW=1` tells the linker to bind the library before the execution, rather than the default behaviour of loading them only when they are called, and `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable` allows to disable the [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2) instruction set, which is not supported by BINSEC. The script is run by
+These two problems can be solved by running BINSEC on a core dump rather than on the program itself. The core dump can be obtained through GDB. I wrote the necessary commands in [this GDB script](gdb-script). You will identify the method we used in the previous part to find the `main`, and also the setting of two environment variables: `LD_BIND_NOW=1` tells the linker to bind the library before the execution, rather than the default behaviour of loading them only when they are called, and `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable` allows to disable the [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2) instruction set, which is not supported by BINSEC. The script is run by
 ```shell
 $ gdb -x gdb-script licorne
 ```
@@ -167,7 +167,7 @@ replace <__isoc99_scanf> by
 Ok, let's try to run our script, using the new Symbolic Execution Engine because it is faster, and with a big exploration depth to be safe :
 ``` shell
 $ binsec -sse -sse-script binsec-licorne.ini -sse-alternative-engine -sse-depth 1000000 core.snapshot                          
-[sse:warning] Cut @ (0x7ffff69402b9, 0) : #unsupported syscall
+[sse:warning] Cut @ (0x7ffff69402b9, 0): #unsupported syscall
 [...]
 ```
 Ouch, this "unsupported syscall" probably occurs because the emulator is allocating more memory than the one initially present in the core dump. We'll have to find another way.
@@ -211,11 +211,11 @@ We have two blocs of data, one starting at `001040c0` and another at `001042c0`.
 $ dd if=licorne of=bloc1.bin bs=1 skip=$((0x30c0)) count=$((0x50c0 - 0x30c0))
 $ dd if=licorne of=bloc2.bin bs=1 skip=$((0x32c0)) count=$((0x50c0 - 0x32c0))
 ```
-It is then interesting to notice that the actual decoding of the arm code depens on the parameter `n` of the function, which seems to be the index of the emulator : our 8 processors run different codes ! After checking in the disassembly that the value of `n` can only be in `[0,7]`, we rewrite the deobfuscation in python, and run the resulting [script](script.py) to get the 8 corresponding arm codes. But these codes are *blobs*, not executable files, and most of the debugging tools won't work unless they are given an executable format (ELF or PE). After some online research and `man` reading, we find that `objcopy` can do this, using the package `binutils-aarch64-linux-gnu`. The exact command, found after some trials and errors, is
+It is then interesting to notice that the actual decoding of the arm code depens on the parameter `n` of the function, which seems to be the index of the emulator: our 8 processors run different codes ! After checking in the disassembly that the value of `n` can only be in `[0,7]`, we rewrite the deobfuscation in python, and run the resulting [script](script.py) to get the 8 corresponding arm codes. But these codes are *blobs*, not executable files, and most of the debugging tools won't work unless they are given an executable format (ELF or PE). After some online research and `man` reading, we find that `objcopy` can do this, using the package `binutils-aarch64-linux-gnu`. The exact command, found after some trials and errors, is
 ```shell
 $ aarch64-linux-gnu-objcopy --input-target=binary --output-target=elf64-littleaarch64 --add-section .text=arm0.bin arm0.bin arm0.elf
 ```
-We now have 8 elf files corresponding to the codes ran by our 8 emulated processors. If we disassemble them with BINSEC (note : you will need to have `unisim_archisec` installed in order to be able to decode aarch64), we see that they all look alike : a big bunch of multiplications, rotations and xoring
+We now have 8 elf files corresponding to the codes ran by our 8 emulated processors. If we disassemble them with BINSEC (note: you will need to have `unisim_archisec` installed in order to be able to decode aarch64), we see that they all look alike: a big bunch of multiplications, rotations and xoring
 ```shell
 $ binsec -disasm arm7.elf
 [disasm:info] Running disassembly
@@ -245,7 +245,7 @@ $ binsec -sse -sse-script binsec-arm.ini arm7.elf
                (bvsub (bvmul x0_96 (_ bv2193733482345424343 64))
                (_ bv1643298469197263812 64)))
 ```
-BINSEC made some sipmplifications, and the formula is actually pretty simple : just a multiplication and a substraction with constants! And we have similar results for the 7 other programs, but with different constants. I wonder why the guy who made the `licorne` program had to use an emulator to do this computation, if not for making our life harder. Now that we know what this code does, we'll be able to stub the whole process of emulation, and run BINSEC on the program.
+BINSEC made some sipmplifications, and the formula is actually pretty simple: just a multiplication and a substraction with constants! And we have similar results for the 7 other programs, but with different constants. I wonder why the guy who made the `licorne` program had to use an emulator to do this computation, if not for making our life harder. Now that we know what this code does, we'll be able to stub the whole process of emulation, and run BINSEC on the program.
 
 ## Solving the crackme
 
@@ -314,7 +314,7 @@ replace <uc_reg_read> by
     rax := 0
     jump at caller
 ```
-And now the tricky part : we want to stub the function that executes the ARM code, at address `0x555555555410`. It's argument is the number of the processor, between `0` and `7` included. We'll read the current value of `X0` in our `X0_val` array, update it according to the formulas we exhibited in the previous part, then store it back in `x0_val`. To know which formula to apply, we use a `case` structure, which is the DBA code for a `switch` :
+And now the tricky part: we want to stub the function that executes the ARM code, at address `0x555555555410`. It's argument is the number of the processor, between `0` and `7` included. We'll read the current value of `X0` in our `X0_val` array, update it according to the formulas we exhibited in the previous part, then store it back in `x0_val`. To know which formula to apply, we use a `case` structure, which is the DBA code for a `switch` :
 ```
 play_arm_code<64> := 0x555555555410
 replace play_arm_code by
@@ -349,12 +349,12 @@ $ binsec -sse -sse-script binsec-licorne.ini -sse-alternative-engine -sse-depth 
 [sse:result] Model @ 0x5555555552b2
              --- Model ---
              # Variables
-             int_input : 0xbddb83056668ad24 0x731c28bd35161a7d
+             int_input: 0xbddb83056668ad24 0x731c28bd35161a7d
                          0x90923d7a887e728f 0x4866bbe4d32b5947
                          0xe64b8dab82b54783 0x9a0777668fac199e
                          0x199fe9291df0f5ac 0x199c4555cfd54412
-             ymm0 : --
-             ymm1 : --
+             ymm0: --
+             ymm1: --
              
              -- empty memory --
 ```

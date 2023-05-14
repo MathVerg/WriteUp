@@ -1,9 +1,9 @@
 # Fastfor
 
-- Category : crypto
-- Difficulty : medium
-- Final point value : 123
-- Number of solves : 111
+- Category: crypto
+- Difficulty: medium
+- Final point value: 123
+- Number of solves: 111
 
 A funny crypto challenge where one had to find an image with a Fourier transform close to that of another image.
 
@@ -12,7 +12,7 @@ A funny crypto challenge where one had to find an image with a Fourier transform
 Make the image different yet same!
 https://fastfor.chall.pwnoh.io
 
-Associated file : [check_hash.py](./check_hash.py)
+Associated file: [check_hash.py](./check_hash.py)
 
 ## First inspection
 
@@ -38,4 +38,4 @@ Beautiful, isn't it ? But the problem is that when we take the inverted Fourier 
 
 ## Solution
 
-The solution was finally quite simple : rather than doing conservative transformations on the Fourier transform of the image, do them directly on the original image. That's what I did in this simple [script](./script.py), the transpose of the original image has indeed the same Fourier transform, and could consequently be uploaded to obtain the flag : `buckeye{D33p_w0Rk_N07_WhY_574ND4RD_d3V}`
+The solution was finally quite simple: rather than doing conservative transformations on the Fourier transform of the image, do them directly on the original image. That's what I did in this simple [script](./script.py), the transpose of the original image has indeed the same Fourier transform, and could consequently be uploaded to obtain the flag: `buckeye{D33p_w0Rk_N07_WhY_574ND4RD_d3V}`

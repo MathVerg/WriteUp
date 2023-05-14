@@ -1,4 +1,4 @@
-# FSCS 2022 : Guess Me Too
+# FSCS 2022: Guess Me Too
 
 ## The server program
 
@@ -11,13 +11,13 @@ We'll start by analyzing the `guessmetoo.py` server file. We've got a function c
 
 Finally, the main function plays `K=32` games and gives out the flag iff the player succeed in every of them. So, we'll have to find a way to always win this game.
 
-## Simplified case : no bit flip
+## Simplified case: no bit flip
 
 In order to start easy, I first modified the server file on my computer to remove the bit flip, and tried to solve the game in this setting. To this end, I started a [Python script](attack.py), and wrote the functions `mask_sample` and `interpret_mask_sample`. The method here is a bit naive and uses `129` bits of information where only `128` were necessary, but this is the first idea that came to my mind, maybe because I got carried out when I understood the server was doing checksums.
 
 --- 
 
-### *Apparté* : masks
+### *Apparté*: masks
 
 A mask is a number that is AND-ed to another number to hide a part of this number. Each `0` in the mask will "hide" the corresponding bit in the masked number by turning it to `0`, whereas each `1` will let you see through the mask and keep the corresponding bit as it is. So a mask can be seen as an actual face mask, with the `1` being the holes for the eyes.
 
@@ -33,7 +33,7 @@ And then, the last mask is full of `1`s, so it does the entire checksum of the s
 
 So, to interpret the results, you can get the `i`-th bit by XORing the checksum of the `i`-th mask with the checksum of the "invisible" mask. You get a number that is a XOR of twice every bit, except the `i`-th tha appear only once, so the result is the `i`-th bit.
 
-Then you would tell me that it seems over-complicated, and that I should just have made the opposite : `128` masks full of zeros, with only a `1` at position `i`. This would have been much easier, the `i`-th checksum would directly give you the `i`-th byte. Why haven't I done that ? Probably because I started coding at my first though, without trying to find a better idea. Or maybe because I found the girl with an eye mask prettier.
+Then you would tell me that it seems over-complicated, and that I should just have made the opposite: `128` masks full of zeros, with only a `1` at position `i`. This would have been much easier, the `i`-th checksum would directly give you the `i`-th byte. Why haven't I done that ? Probably because I started coding at my first though, without trying to find a better idea. Or maybe because I found the girl with an eye mask prettier.
 
 ![one hole mask](masqueUnTrou.jpg)
 
@@ -64,7 +64,7 @@ Instead, we'll do a mask that is a XOR of all the half-masks. It is full of seem
 
 ![mask full of holes](jason-voorhees.jpg)
 
-Though it may not be obvious, it works exactly like the former one : we XOR every half-mask to create this last mask, so if there are no errors in the last `8` checksum, they should XOR to zero.
+Though it may not be obvious, it works exactly like the former one: we XOR every half-mask to create this last mask, so if there are no errors in the last `8` checksum, they should XOR to zero.
 Okay, so now we know if an error happenened in the half-masks. And what if the error happens in the last mask ? Well, we don't have to care, it means that there is no error in the first `128` one-bits masks, so the number we built is the secret number.
 
 I implemented this method in the functions `sample_ec` and `interpret_ec` (EC stands for Error Correction).

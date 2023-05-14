@@ -1,9 +1,9 @@
 # Frog universe
 
-- Category : Misc
-- Difficulty : easy
-- Final point value : 477
-- Number of solves : 7
+- Category: Misc
+- Difficulty: easy
+- Final point value: 477
+- Number of solves: 7
 
 Every CTF has a remote algorithmics challenge, and I usuallly enjoy solving them. Though this one was tagged "easy", it turned out to be solved by only 7 teams out of 680...
 
@@ -13,7 +13,7 @@ Welcome to Frog Universe! Can you wander to the flag and back to actually receiv
 ```
 nc pwn.chall.pwnoh.io 13380
 ```
-Associated file : [maze.py](./maze.py)
+Associated file: [maze.py](./maze.py)
 
 ## Server source code review
 
@@ -24,13 +24,13 @@ Here are the information we can gather by reading the server source code and pla
 - in this maze the "walls" are tiles containing a "frog" or a "nebula". Walking on these tiles would kill you and end the game
 - exactly one frog or nebula is spawned randomly in each `3x3` chunk of the game grid. In the spawn chunk and in the flag chunk, it may happen that the frog/nebula is overwritten by the spawnpoint/flag though
 - one can move in the four cardinal directions by sending `w`, `a`, `s` or `d`
-- every time we move to a new free tile, we receive warnings about the dangers around us : each frog and nebula in an adjacent tile will produce a warning. So, we can receive up to three warnings per move. After each move we also receive our new coordinates, which could be useful for debugging
+- every time we move to a new free tile, we receive warnings about the dangers around us: each frog and nebula in an adjacent tile will produce a warning. So, we can receive up to three warnings per move. After each move we also receive our new coordinates, which could be useful for debugging
 - there is no pattern indicating the end of the warnings after a move. That will be quite annoying when scripting a solution, we'll have to wait until the servers stops sending.
 - when trying to move out of bounds, we just virtually move to the tile we are already on. This means that we can get the warnings for the spawn tile by walking toward the grid boundary (`s` or `a`)
 
 ## Strategy design
 
-We first observe that the maze is really sparse : only one obstacle per `3x3` chunk. This means that the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) will be a very good approximation of the shortest path length between two points. So if we have to do any pathfinding, we'll use [A*](https://en.wikipedia.org/wiki/A*_search_algorithm) with the Manhattan distance as the guiding heuristic.
+We first observe that the maze is really sparse: only one obstacle per `3x3` chunk. This means that the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) will be a very good approximation of the shortest path length between two points. So if we have to do any pathfinding, we'll use [A*](https://en.wikipedia.org/wiki/A*_search_algorithm) with the Manhattan distance as the guiding heuristic.
 
 Then, I tried to solve some very small instances of the problem with pen and paper. I quickly found out that some cases are not deterministically solvable. See for instance this situation, where `0` is a free tile and `1` is a frog, our spawnpoint being in the bottom left.
 ```
@@ -75,7 +75,7 @@ In the `__init__` function you will see that we represent the maze using an arra
 
 The `move` and `update_chunk` instructions are probably the more complicated functions, because they implement all the heuristics we told about, using the warnings received after a move to update our knowledge of the maze. I commented the code of these functions so you can match their different parts with the heuristics exposed in the previous section.
 
-Then I have a `get_path` functions that computes a path from the current position to any other tile. This functions uses the A* algortihm with the Manhattan distance as a guiding heuristic. Note that I did not fully optimize the algorithm : to achieve a better worst case complexity, I should have used a priority queue for the `openSet` variable. But my guess was that most of the requested paths would be very short and thus would not need such an optimization. This function is then used in a `goto` function that calculates the path and then walk along it.
+Then I have a `get_path` functions that computes a path from the current position to any other tile. This functions uses the A* algortihm with the Manhattan distance as a guiding heuristic. Note that I did not fully optimize the algorithm: to achieve a better worst case complexity, I should have used a priority queue for the `openSet` variable. But my guess was that most of the requested paths would be very short and thus would not need such an optimization. This function is then used in a `goto` function that calculates the path and then walk along it.
 
 Ok, now that we can move wherever we want along the tiles that are free for sure, what should we do ? I first considered trying to explore the entire maze, then move to the flag and then back to the exit. But since we already know where the flag is, we can use an A*-like mechanism to guide our exploration toward the flag. This is done in the `explore` function, and this time I am using a priority queue. The function stops exploring prematurely if the flag is found. Note that the exploration logic is inside a loop, because it may happen that at some point in the exploration we uncover information that would have helped us in a previous part of the exploration. So, if we haven't found the flag after a first pass but updated our knowledge of the maze, we do another pass to see if we can use that knowledge, as many times as necessary.
 

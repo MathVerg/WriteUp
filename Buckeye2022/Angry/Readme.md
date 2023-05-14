@@ -1,16 +1,16 @@
 # Angry
 
-- Category : Rev
-- Difficulty : easy
-- Final point value : 216
-- Number of solves : 68
+- Category: Rev
+- Difficulty: easy
+- Final point value: 216
+- Number of solves: 68
 
 A reverse challenge that highly suggested to use symoblic excecution, but it was easily doable without it.
 
 ## Challenge description
 
 Fight anger with [angr](https://angr.io/)
-Associated file : [angry](./Angry)
+Associated file: [angry](./Angry)
 
 ## First inspection
 
@@ -104,4 +104,4 @@ So `encode_char` is just a `leftRotate`, that's easy to inverse. Then `encode` h
 
 ## Decoding with Python
 
-We implement the decoding in this [script](./script.py). Running it gives us the flag : `buckeye{st!ll_b3tt3r_th4n_strfry}`
+We implement the decoding in this [script](./script.py). Running it gives us the flag: `buckeye{st!ll_b3tt3r_th4n_strfry}`
