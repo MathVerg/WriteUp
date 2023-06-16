@@ -2,6 +2,7 @@
 
 ## Infos
 
+https://ctftime.org/event/1898
 https://ctf.m0lecon.it/
 
 - Type: Team Jeopardy
