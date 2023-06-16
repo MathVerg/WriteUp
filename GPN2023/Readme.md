@@ -14,4 +14,4 @@ https://ctf.kitctf.de/
 ## Write-ups
 
 - [winterfactory](./winterfactory): a post-quantum one time signature scheme used several times
-<!-- [number-lock](./number-lock/): a fault attack on AES -->
+- [number-lock](./number-lock/): a fault attack on AES
