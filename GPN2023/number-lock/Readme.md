@@ -56,7 +56,8 @@ If we now apply the reamining operations (MixColumns, AddRoundKey K9, SubBytes, 
 The multiplications and additions are done in the AES Galois Field, so the addition is just a XOR. Now, if we add the first output byte of the authentic and faulty ciphertext, the bytes of the last round key cancel each other, and we obtain
 
 ```math
-\begin{equation*} O_0 + O'_0 = S(2A+3B+C+D+K_{9,0}) + S(2X+3B+C+D+K_{9,0}) \end{equation*}```
+\begin{equation*} O_0 + O'_0 = S(2A+3B+C+D+K_{9,0}) + S(2X+3B+C+D+K_{9,0}) \end{equation*}
+```
 
 If we pose:
 ```math
