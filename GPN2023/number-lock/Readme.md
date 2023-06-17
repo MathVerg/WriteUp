@@ -59,13 +59,8 @@ The multiplications and additions are done in the AES Galois Field, so the addit
 \begin{equation*} O_0 + O'_0 = S(2A+3B+C+D+K_{9,0}) + S(2X+3B+C+D+K_{9,0}) \end{equation*}
 ```
 
-If we pose:
-```math
-\begin{equation*} Y_0=2A+3B+C+D+K_{9,0} \end{equation*}
-\begin{equation*} Z=A+X \end{equation*}
-```
+If we pose $Y_0=2A+3B+C+D+K_{9,0}$ and $Z=A+X$, this becomes:
 
-This becomes:
 ```math
 \begin{equation*} O_0 + O'_0 = S(Y_0) + S(2Z+Y_0) \end{equation*} 
 ```
