@@ -19,7 +19,7 @@ Let's start by finding out what kind of animal this *licorne* is.
 $ file licorne
 licorne: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=351fd2bf65ed48bbcae5eaca0f51c15af9017f54, for GNU/Linux 3.2.0, stripped
 ```
-Ok, so no debugging symbols ("stripped"), dynamically linked (it does not contain the libraries thaty it uses), and written in a language that we know (x86-64).
+Ok, so no debugging symbols ("stripped"), dynamically linked (it does not contain the libraries that it uses), and written in a language that we know (x86-64).
 
 We can search for ascii strings inside the binary
 ```shell
@@ -27,7 +27,7 @@ $ strings licorne
 ```
 We find the usual winning string in two parts: "Congrats! You can use the flag FCSC{" and "} to validate the challenge.". And there are some unusual names, starting with `uc_`, like `uc_reg_write` or `uc_emu_start`, along with the name of a library that will certainly be highly interesting: `libunicorn.so.2`. A quick Web search leads us to the [Unicorn Engine](https://www.unicorn-engine.org/), a CPU emulator. On their website, I found a [short tutorial](https://www.unicorn-engine.org/docs/tutorial.html) that teaches you everything you have to know in order to use the lib.
 
-Okay, and now we'll study the behavior of the program  ~~in a secure environment, like a virtual machine~~ directly on our computer because we trust the people at ANSSI for not giving us a malware without warnings. At first our *licorne* complains about not finding its (her ? his ?) mother (aka the `libunicorn`), so we [download, build and install](https://github.com/unicorn-engine/unicorn/blob/master/docs/COMPILE.md) the lib and run the program again. We try letters and numbers, but the program does not give any feedback. We only notice that it seems to want 8 numbers (it stops prematurely if it is given something else).
+Okay, and now we'll study the behavior of the program  ~~in a secure environment, like a virtual machine~~ directly on our computer because we trust the people at ANSSI for not giving us a malware without warnings. At first our *licorne* complains about not finding its (her? his?) mother (aka the `libunicorn`), so we [download, build and install](https://github.com/unicorn-engine/unicorn/blob/master/docs/COMPILE.md) the lib and run the program again. We try letters and numbers, but the program does not give any feedback. We only notice that it seems to want 8 numbers (it stops prematurely if it is given something else).
 
 ## Trace library calls
 
@@ -51,12 +51,12 @@ Now that's we have the general structure of the lib calls, let's go deeper and s
 
 We also notice that the 8 processors are always called in the same order, but the values written to `X0` are permuted after each read.
 
-We now have a pretty good idea of what is going on in this program, and yet we haven't looked at any piece of assembly code ! It seems that the program takes our 8 numbers, and does some obsure processing on them using 8 ARM emulated codes. But we don't know how the result is verified, so we'll have to get our hands dirty in order to find it.
+We now have a pretty good idea of what is going on in this program, and yet we haven't looked at any piece of assembly code! It seems that the program takes our 8 numbers, and does some obsure processing on them using 8 ARM emulated codes. But we don't know how the result is verified, so we'll have to get our hands dirty in order to find it.
 
 ## Cutter and GDB
 
 We'll first use `Cutter` (a front-end for `radare2`, the version on my computer dates back to before the fork with `iaito`) to statically disassemble the program. We notice two interesting functions :
-- one address `0x000010f0`, that seems to be the `main`function. It contains a loop ran 8 times where `uc_open` and `uc_mem_map` are called. Then another loop ran 8 times where `scanf` is called, and we can see that just before the call, `rdi` is set, through `r13`, to the address of the string "%lu", which confirms that the expected inputs are integers (long and unsigned, to be more precise). Then a great loop ran `31` times and containing 3 smaller loop, each ran 8 times, for `uc_reg_write`, a function at address `0x00001410` and `uc_reg_read`. And finally, at address `0x000012b2`, a check on `rbp` that leads to victory if `rbp` is null: we found it !
+- one address `0x000010f0`, that seems to be the `main`function. It contains a loop ran 8 times where `uc_open` and `uc_mem_map` are called. Then another loop ran 8 times where `scanf` is called, and we can see that just before the call, `rdi` is set, through `r13`, to the address of the string "%lu", which confirms that the expected inputs are integers (long and unsigned, to be more precise). Then a great loop ran `31` times and containing 3 smaller loop, each ran 8 times, for `uc_reg_write`, a function at address `0x00001410` and `uc_reg_read`. And finally, at address `0x000012b2`, a check on `rbp` that leads to victory if `rbp` is null: we found it!
 
 ![victory instruction](VictoryInstruction.png)
 
@@ -211,7 +211,7 @@ We have two blocs of data, one starting at `001040c0` and another at `001042c0`.
 $ dd if=licorne of=bloc1.bin bs=1 skip=$((0x30c0)) count=$((0x50c0 - 0x30c0))
 $ dd if=licorne of=bloc2.bin bs=1 skip=$((0x32c0)) count=$((0x50c0 - 0x32c0))
 ```
-It is then interesting to notice that the actual decoding of the arm code depens on the parameter `n` of the function, which seems to be the index of the emulator: our 8 processors run different codes ! After checking in the disassembly that the value of `n` can only be in `[0,7]`, we rewrite the deobfuscation in python, and run the resulting [script](script.py) to get the 8 corresponding arm codes. But these codes are *blobs*, not executable files, and most of the debugging tools won't work unless they are given an executable format (ELF or PE). After some online research and `man` reading, we find that `objcopy` can do this, using the package `binutils-aarch64-linux-gnu`. The exact command, found after some trials and errors, is
+It is then interesting to notice that the actual decoding of the arm code depens on the parameter `n` of the function, which seems to be the index of the emulator: our 8 processors run different codes! After checking in the disassembly that the value of `n` can only be in `[0,7]`, we rewrite the deobfuscation in python, and run the resulting [script](script.py) to get the 8 corresponding arm codes. But these codes are *blobs*, not executable files, and most of the debugging tools won't work unless they are given an executable format (ELF or PE). After some online research and `man` reading, we find that `objcopy` can do this, using the package `binutils-aarch64-linux-gnu`. The exact command, found after some trials and errors, is
 ```shell
 $ aarch64-linux-gnu-objcopy --input-target=binary --output-target=elf64-littleaarch64 --add-section .text=arm0.bin arm0.bin arm0.elf
 ```
@@ -314,7 +314,7 @@ replace <uc_reg_read> by
     rax := 0
     jump at caller
 ```
-And now the tricky part: we want to stub the function that executes the ARM code, at address `0x555555555410`. It's argument is the number of the processor, between `0` and `7` included. We'll read the current value of `X0` in our `X0_val` array, update it according to the formulas we exhibited in the previous part, then store it back in `x0_val`. To know which formula to apply, we use a `case` structure, which is the DBA code for a `switch` :
+And now the tricky part: we want to stub the function that executes the ARM code, at address `0x555555555410`. Its argument is the number of the processor, between `0` and `7` included. We'll read the current value of `X0` in our `x0_val` array, update it according to the formulas we exhibited in the previous part, then store it back in `x0_val`. To know which formula to apply, we use a `case` structure, which is the DBA code for a `switch`:
 ```
 play_arm_code<64> := 0x555555555410
 replace play_arm_code by
@@ -358,7 +358,7 @@ $ binsec -sse -sse-script binsec-licorne.ini -sse-alternative-engine -sse-depth 
              
              -- empty memory --
 ```
-So we have the values that our symbolic variable should take to solve the crackme ! Let's convert them to decimal and check :
+So we have the values that our symbolic variable should take to solve the crackme! Let's convert them to decimal and check:
 ```
 $ ./licorne                                                                                          
 13680672352284224804
@@ -371,4 +371,4 @@ $ ./licorne
 1845426182176457746
 Congrats! You can use the flag FCSC{bddb83056668ad24731c28bd35161a7d90923d7a887e728f4866bbe4d32b5947e64b8dab82b547839a0777668fac199e199fe9291df0f5ac199c4555cfd54412} to validate the challenge.
 ```
-And that's a victory !
+And that's a victory!
