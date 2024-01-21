@@ -140,7 +140,7 @@ memory:          |...|?|3|1|2|3|0|0|?|?|0|0|
 pointers:        c      v       l       z
 args of menu:         4 0       1       3
 ```
-Argument `2` of menu is not represented there because it is not a pointer, rather the constant `2`. The argument of `get_name`, aka our overflowing buffer, is pointed to by `l`. The only potentially interesting thing that this buffer can overflow into is the two zeroes pointed by argument 3 of `menu`. So, let's trace where this argument goes:
+Argument `2` of menu is not represented there because it is not a pointer, rather the constant `2`. The argument of `get_name`, aka our overflowing buffer, is pointed to by `l`. The only potentially interesting thing that this buffer can overflow into is the two zeroes pointed by argument `3` of `menu`. So, let's trace where this argument goes:
 ```C
 function menu(a:int, b:int, c:int, d:int, e:int) {
   var f:int = stack_pointer;
@@ -160,7 +160,7 @@ function menu(a:int, b:int, c:int, d:int, e:int) {
   ...
 }
 ```
-It is passed to `fixe_typo` as first argument. And then:
+It is passed to `fix_typo` as first argument. And then:
 ```C
 function fix_typo(a:int, b:int, c:int) {
   var d:int = stack_pointer;
@@ -178,7 +178,7 @@ function fix_typo(a:int, b:int, c:int) {
   ...
 }
 ```
-The pointer is dereferenced, and the corresponding value is passed as second argument to `setValues`. If the buffer does not overflow, this argmument should then always be zero. How is it actually used:
+The pointer is dereferenced, and the corresponding value is passed as second argument to `setValues`. If the buffer does not overflow, this argument should then always be zero. How is it actually used:
 ```C
 function setValues(a:int, b:int, c:int) {
   var d:int = stack_pointer;
@@ -347,7 +347,7 @@ Bye!
  AAAAAAAAAAAAAAAA\xf4\xff\xff\xff - 3 is gone
 [*] Got EOF while reading in interactive
 ```
-And that's a flag! The final exploit can be found [here](./exploit.py).
+And that's a real flag! The final exploit can be found [here](./exploit.py).
 
 ## Conclusion
 
