@@ -9,7 +9,8 @@ My write-up assumes that you are familiar with the basics of glibc allocator int
 
 ## Challenge description
 
-Log requests and save it with this fast and safe Log server
+Log requests and save it with this fast and safe Log server.
+
 Associated files: [log](./log), [libc.so.6](./libc.so.6), [ld-2.35.so](./ld-2.35.so)
 
 ## Reverse engineering
