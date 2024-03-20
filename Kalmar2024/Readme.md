@@ -13,3 +13,4 @@ https://kalmarc.tf/
 ## Write-ups
 
 - [blind suid](./blind_suid/): leaking and exploiting an suid binary with execute-only perm for our user
+- [MathGolf-Warmup](./MathGolf-Warmup/): computing Fibonacci-like sequences in `GF(p)`
