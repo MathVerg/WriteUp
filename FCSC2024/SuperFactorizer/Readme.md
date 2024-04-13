@@ -203,3 +203,7 @@ super-factorizer
 cat flag.txt
 FCSC{0f531ad9168d64c1d520a82593a2d968fce8478e5a6d1a310ea5531a6724dc3e}
 ```
+
+## Conclusion
+
+This challenge was not so difficult but quite original, and I am proud to be amongst the few who managed to solve it. Thanks for the challenge!
