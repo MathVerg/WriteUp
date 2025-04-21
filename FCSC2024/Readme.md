@@ -3,6 +3,7 @@
 ## Infos
 
 https://www.ssi.gouv.fr/agence/cybersecurite/france-cybersecurity-challenge-2024/
+https://hackropole.fr/fr/fcsc2024/
 
 - Type: Individual Jeopardy
 - Username: mouthon
@@ -10,7 +11,7 @@ https://www.ssi.gouv.fr/agence/cybersecurite/france-cybersecurity-challenge-2024
 - Score: 15068 pts
 - Rank in division: 1st
 - Rank overall: 3rd
-- Outstanding fact: got 1st in the senior division, was subsequently selected for ECSC Team France
+- Outstanding fact: got 1st in the senior division, was subsequently selected for ECSC Team France and chosen as capitain
 
 ## Write-ups
 

@@ -3,6 +3,7 @@
 ## Infos
 
 https://www.ssi.gouv.fr/agence/cybersecurite/france-cybersecurity-challenge-2023/
+https://hackropole.fr/fr/fcsc2023/
 
 - Type: Individual Jeopardy
 - Username: mouthon

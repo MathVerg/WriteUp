@@ -3,6 +3,7 @@
 ## Infos
 
 https://www.ssi.gouv.fr/agence/cybersecurite/france-cybersecurity-challenge-2022/
+https://hackropole.fr/fr/fcsc2022/
 
 - Type: Individual Jeopardy
 - Username: mouthon
