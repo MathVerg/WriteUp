@@ -1,0 +1,5 @@
+services:
+  swift-encryptor:
+    build: .
+    ports:
+      - "4000:4000"
