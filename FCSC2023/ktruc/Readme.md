@@ -1,5 +1,7 @@
 # FCSC 2023: ktruc
 
+https://hackropole.fr/fr/challenges/pwn/fcsc2023-pwn-ktruc/
+
 "ktruc" is the most difficult challenge that I solved during the FCSC 2023. It was a pwn challenge, which featured a vulnerable Linux Kernel Module (LKM) to exploit. I had never done kernel pwning before, so I am quite proud that I managed to solve this one, and I learned a lot while doing it.
 
 ## Learning Kernel pwning

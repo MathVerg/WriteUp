@@ -1,5 +1,7 @@
 # FSCS 2022: Guess Me Too
 
+https://hackropole.fr/fr/challenges/misc/fcsc2022-misc-guess-me-too/
+
 ## The server program
 
 We'll start by analyzing the `guessmetoo.py` server file. We've got a function called `w` that calculate's the [Hamming weight](https://en.wikipedia.org/wiki/Hamming_weight) of it's input modulo two. Then a `game` function, that does the following:

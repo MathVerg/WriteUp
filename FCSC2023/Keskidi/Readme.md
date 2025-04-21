@@ -1,5 +1,7 @@
 # FCSC 2023: Keskidi
 
+https://hackropole.fr/fr/challenges/pwn/fcsc2023-pwn-keskidi/
+
 "Keskidi" is a pwn challenge not like the others, because I obtained a First Blood for it. Here is how I solved it.
 
 ## Reverse-engineering

@@ -1,5 +1,7 @@
 # Super Factorizer
 
+https://hackropole.fr/fr/challenges/pwn/fcsc2024-pwn-super-factorizer/
+
 This quite original challenge was supposed to be of "Medium" dificulty (two stars out of three), but got only 4 solves at the time this write-up was written.
 TLDR: unchecked dynamic allocation on stack, overwrite environement variables used by a bash script, get code execution thanks to the `BASH_ENV` variable.
 

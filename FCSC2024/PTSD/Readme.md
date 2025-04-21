@@ -1,5 +1,8 @@
 # PTSD 
 
+https://hackropole.fr/fr/challenges/reverse/fcsc2024-reverse-ptsd-1/
+https://hackropole.fr/fr/challenges/reverse/fcsc2024-reverse-ptsd-2/
+
 A reverse chall where we were given a server binary implementing a "secure" data exchange protocol, named PTSD ("Protocole Très Sécurisé de transimmsion de Données", i.e. "very secure data transmission protocol"). We had to understand the protocol and establish a secure connection with the server to get a first flag, then exploit a flaw in the protocol to impersonate another client, which will get us a second flag.
 
 ![xkcd Protocol](https://imgs.xkcd.com/comics/protocol_2x.png)
