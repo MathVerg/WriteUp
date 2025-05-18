@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://cy36etjcusiw5"]
+
+[ext_resource type="Script" uid="uid://drstfy00nx0bm" path="res://Scripts/Unit.cs" id="1_f0iwp"]
+[ext_resource type="Texture2D" uid="uid://cyyhuserospjt" path="res://Art/skull.png" id="2_v2ecg"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fw1od"]
+
+[node name="DefaultUnit" type="CharacterBody2D" node_paths=PackedStringArray("_sprite")]
+script = ExtResource("1_f0iwp")
+_sprite = NodePath("Sprite2D")
+_attackStrength = 5
+_bounty = 200
+Health = 30
+_unitType = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-3.57628e-07, -4.76837e-07)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_v2ecg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_fw1od")

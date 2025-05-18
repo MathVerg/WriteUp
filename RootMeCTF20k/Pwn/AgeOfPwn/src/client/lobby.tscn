@@ -1,0 +1,114 @@
+[gd_scene load_steps=7 format=3 uid="uid://f8vbse2hu873"]
+
+[ext_resource type="Script" uid="uid://dmbs50pbrucp6" path="res://Scripts/Lobby.cs" id="1_wil67"]
+[ext_resource type="PackedScene" uid="uid://bjrlupa4j278t" path="res://PlayerControl.tscn" id="2_b1vb0"]
+[ext_resource type="PackedScene" uid="uid://cxd88p1025aqn" path="res://Bot.tscn" id="3_1sjgn"]
+[ext_resource type="PackedScene" uid="uid://cm4hd5q0n6ok0" path="res://NetworkPlayer.tscn" id="4_x43aj"]
+[ext_resource type="PackedScene" uid="uid://dxerjff4lctnt" path="res://NetworkPlayerControl.tscn" id="5_irnc6"]
+[ext_resource type="Theme" uid="uid://uew0j5s8f41v" path="res://Art/theme.tres" id="6_xg1qv"]
+
+[node name="Lobby" type="Control" node_paths=PackedStringArray("_playButton", "_ipLineEdit", "_portLineEdit", "_hostButton", "_lobbyIdEdit", "_joinButton", "_errorLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wil67")
+_playButton = NodePath("Menu/PlayButton")
+_ipLineEdit = NodePath("Menu/IP")
+_portLineEdit = NodePath("Menu/Port")
+_hostButton = NodePath("Menu/HostButton")
+_lobbyIdEdit = NodePath("Menu/Lobby")
+_joinButton = NodePath("Menu/JoinButton")
+_errorLabel = NodePath("Menu/ErrorLabel")
+_playerControl = ExtResource("2_b1vb0")
+_bot = ExtResource("3_1sjgn")
+_networkPlayer = ExtResource("4_x43aj")
+_networkPlayerControl = ExtResource("5_irnc6")
+
+[node name="Background" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Background"]
+layout_mode = 2
+color = Color(0.0784314, 0.129412, 0.239216, 1)
+
+[node name="Menu" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.33
+anchor_top = 0.5
+anchor_right = 0.33
+anchor_bottom = 0.5
+offset_left = -424.0
+offset_top = -184.0
+offset_right = 725.0
+offset_bottom = 184.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("6_xg1qv")
+
+[node name="Label" type="Label" parent="Menu"]
+clip_contents = true
+layout_mode = 2
+theme = ExtResource("6_xg1qv")
+theme_type_variation = &"HeaderLarge"
+text = "Age of Pwn"
+
+[node name="PlayButton" type="Button" parent="Menu"]
+layout_mode = 2
+tooltip_text = "Play locally against Bot Bob"
+theme = ExtResource("6_xg1qv")
+text = "PLAY"
+alignment = 0
+
+[node name="IP" type="LineEdit" parent="Menu"]
+layout_mode = 2
+theme = ExtResource("6_xg1qv")
+placeholder_text = "127.0.0.1"
+
+[node name="Port" type="LineEdit" parent="Menu"]
+layout_mode = 2
+theme = ExtResource("6_xg1qv")
+placeholder_text = "1234"
+
+[node name="HostButton" type="Button" parent="Menu"]
+layout_mode = 2
+tooltip_text = "Host a new game. This will create a new lobby which you can share with your friends! Once they joined, the game begins."
+theme = ExtResource("6_xg1qv")
+text = "HOST"
+alignment = 0
+
+[node name="Lobby" type="LineEdit" parent="Menu"]
+layout_mode = 2
+tooltip_text = "The host of a lobby can provide you with an ID for the lobby!"
+theme = ExtResource("6_xg1qv")
+placeholder_text = "12"
+
+[node name="JoinButton" type="Button" parent="Menu"]
+layout_mode = 2
+tooltip_text = "Join a lobby. If the lobby exists, the game starts!"
+theme = ExtResource("6_xg1qv")
+text = "JOIN"
+alignment = 0
+
+[node name="ExitButton" type="Button" parent="Menu"]
+layout_mode = 2
+theme = ExtResource("6_xg1qv")
+text = "ALT+F4"
+alignment = 0
+
+[node name="ErrorLabel" type="Label" parent="Menu"]
+layout_mode = 2
+theme = ExtResource("6_xg1qv")
+
+[connection signal="pressed" from="Menu/PlayButton" to="." method="OnPlayPressed"]
+[connection signal="pressed" from="Menu/HostButton" to="." method="OnHostPressed"]
+[connection signal="pressed" from="Menu/JoinButton" to="." method="OnJoinPressed"]
+[connection signal="pressed" from="Menu/ExitButton" to="." method="OnQuitPressed"]

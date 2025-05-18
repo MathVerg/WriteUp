@@ -1,0 +1,72 @@
+[gd_scene load_steps=3 format=3 uid="uid://bjrlupa4j278t"]
+
+[ext_resource type="Script" uid="uid://01p31pkn7uun" path="res://Scripts/PlayerControl.cs" id="1_jgb0q"]
+[ext_resource type="Theme" uid="uid://bx6qrrn6eky32" path="res://Art/ingame_theme.tres" id="2_7yx5g"]
+
+[node name="HBoxContainer" type="HBoxContainer" node_paths=PackedStringArray("_moneyLabel")]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 46.0
+grow_horizontal = 2
+alignment = 1
+script = ExtResource("1_jgb0q")
+_moneyLabel = NodePath("MoneyLabel")
+
+[node name="Left" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Filler" type="Control" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MoneyLabel" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_7yx5g")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "$100.00"
+horizontal_alignment = 1
+
+[node name="Filler2" type="Control" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Right" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 30
+
+[node name="SkullButton" type="Button" parent="Right"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Price: $15.00
+Strength: 5
+Health: 30
+Bounty: $2.00"
+theme = ExtResource("2_7yx5g")
+text = "Buy Skull"
+
+[node name="CatButton" type="Button" parent="Right"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Price: $100.00
+Strength: 10
+Health: 50
+Bounty: $30.00"
+theme = ExtResource("2_7yx5g")
+text = "Buy Cat"
+
+[node name="DogButton" type="Button" parent="Right"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Price: $500.00
+Strength: 20
+Health: 80
+Bounty: $200.00"
+theme = ExtResource("2_7yx5g")
+text = "Buy Dog"
+
+[connection signal="pressed" from="Right/SkullButton" to="." method="OnBuySkullUnitPressed"]
+[connection signal="pressed" from="Right/CatButton" to="." method="OnBuyCatUnitPressed"]
+[connection signal="pressed" from="Right/DogButton" to="." method="OnBuyDogUnitPressed"]

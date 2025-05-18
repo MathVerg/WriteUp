@@ -1,0 +1,70 @@
+[gd_resource type="Theme" load_steps=8 format=3 uid="uid://bx6qrrn6eky32"]
+
+[ext_resource type="FontFile" uid="uid://bniqluuolh4nv" path="res://Art/Fonts/MedievalSharp-Regular.ttf" id="1_m7fd7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7i0rc"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gtmrl"]
+bg_color = Color(0, 0, 0, 0.780392)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ta0mx"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tyxae"]
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 4
+border_color = Color(0.898039, 0.898039, 0.898039, 0.0392157)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f8lqu"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ux4xf"]
+bg_color = Color(0.988235, 0.639216, 0.0666667, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 4.0
+expand_margin_top = 4.0
+expand_margin_right = 4.0
+expand_margin_bottom = 4.0
+
+[resource]
+Button/colors/font_color = Color(1, 1, 1, 1)
+Button/font_sizes/font_size = 40
+Button/fonts/font = ExtResource("1_m7fd7")
+Button/styles/focus = SubResource("StyleBoxFlat_7i0rc")
+Button/styles/hover = SubResource("StyleBoxFlat_7i0rc")
+Button/styles/normal = SubResource("StyleBoxFlat_gtmrl")
+Button/styles/pressed = SubResource("StyleBoxFlat_ta0mx")
+HeaderLarge/colors/font_color = Color(0.988235, 0.639216, 0.0666667, 1)
+HeaderLarge/font_sizes/font_size = 90
+Label/font_sizes/font_size = 40
+Label/fonts/font = ExtResource("1_m7fd7")
+LineEdit/colors/font_color = Color(1, 1, 1, 1)
+LineEdit/colors/font_placeholder_color = Color(0.898039, 0.898039, 0.898039, 0.6)
+LineEdit/font_sizes/font_size = 40
+LineEdit/fonts/font = ExtResource("1_m7fd7")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_tyxae")
+ProgressBar/font_sizes/font_size = 30
+ProgressBar/fonts/font = ExtResource("1_m7fd7")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_f8lqu")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_ux4xf")
+VBoxContainer/constants/separation = 20

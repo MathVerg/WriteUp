@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cm4hd5q0n6ok0"]
+
+[ext_resource type="Script" uid="uid://6conibq3h48s" path="res://Scripts/NetworkPlayer.cs" id="1_w1bv3"]
+
+[node name="Bot" type="Node"]
+script = ExtResource("1_w1bv3")
