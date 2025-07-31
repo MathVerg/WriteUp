@@ -13,3 +13,4 @@ https://2025.uiuc.tf
 ## Write-ups
 
 - [nocaml](./nocaml/): you can compile and run an arbitrary OCaml program, but without any function from the standard library
+- [Lua.efi](./Lua.efi/): bypass secure boot through a Lua interpreter in UEFI
