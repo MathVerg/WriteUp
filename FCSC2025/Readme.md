@@ -7,9 +7,9 @@ https://hackropole.fr/fr/fcsc2025/
 - Type: Individual Jeopardy
 - Username: mouthon
 - Division: Senior (21-25 years old)
-- Score: **TODO**
-- Rank in division: **TODO**
-- Rank overall: **TODO**
+- Score: 11479
+- Rank in division: 2nd
+- Rank overall: 5th
 - Outstanding fact: 1st place overall in the "pwn" category, with 4 first bloods out of 8 challenges
 
 ## Write-ups
